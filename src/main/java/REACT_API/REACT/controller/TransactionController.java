@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import REACT_API.REACT.dto.ApiResponse;
+import REACT_API.REACT.dto.ComplainStatusResponse;
 import REACT_API.REACT.dto.ComplaintRequest;
 import REACT_API.REACT.dto.FeedbackRequest;
 import REACT_API.REACT.dto.OtpRequest;
@@ -28,12 +29,15 @@ import REACT_API.REACT.dto.ReceiptResponse;
 import REACT_API.REACT.dto.TransactionDTO;
 import REACT_API.REACT.dto.TransactionSearchRequest;
 import REACT_API.REACT.entity.FeedbackData;
+import REACT_API.REACT.service.ComplainStatusService;
 import REACT_API.REACT.service.ComplaintService;
 import REACT_API.REACT.service.FeedbackService;
 import REACT_API.REACT.service.OtpService;
 import REACT_API.REACT.service.ReceiptService;
 import REACT_API.REACT.service.TransactionService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -152,7 +156,7 @@ public ResponseEntity<FeedbackData> saveFeedback(
   public ResponseEntity<Map<String, Object>> submitComplaint(
 		  @Valid ComplaintRequest request,
          @RequestParam(required = false) String vehicleRegistrationNo,
-         @RequestParam(required = false) String applicationNumber,
+         @RequestParam(value = "applicationNo", required = false) String applicationNumber,
          @RequestParam String chassisNumber,
          @RequestParam String feedbackDescription,
          @RequestParam String rtoName,
@@ -174,7 +178,7 @@ public ResponseEntity<FeedbackData> saveFeedback(
     // ComplaintRequest request = new ComplaintRequest();
 
      request.setVehicleRegistrationNo(vehicleRegistrationNo);
-     request.setApplicationNumber(applicationNumber);
+     request.setApplicationNo(applicationNumber);
      request.setChassisNumber(chassisNumber);
      request.setFeedbackDescription(feedbackDescription);
      request.setRtoName(rtoName);
@@ -194,6 +198,7 @@ public ResponseEntity<FeedbackData> saveFeedback(
   private OtpService otpService;
 
 @PostMapping("/otp/send")
+@PreAuthorize("hasAnyRole('USER','ADMIN')")
 public ResponseEntity<ApiResponse> sendOtp(
        @RequestBody OtpRequest request) {
 
@@ -232,6 +237,7 @@ public ResponseEntity<ApiResponse> sendOtp(
 
 
 @PostMapping("/otp/verify")
+@PreAuthorize("hasAnyRole('USER','ADMIN')")
 public ResponseEntity<ApiResponse> verifyOtp(
        @RequestBody OtpVerifyRequest request) {
 
@@ -288,6 +294,34 @@ public ResponseEntity<ApiResponse> verifyOtp(
                                + e.getMessage()));
    }
 }
+
+
+//=====================================================
+//COMPLAIN STATUS API
+//=====================================================
+
+@Autowired
+private ComplainStatusService complainStatusService;
+
+@GetMapping("/complainstatus/{requestId}")
+@PreAuthorize("hasAnyRole('USER','ADMIN')")
+public ResponseEntity<ComplainStatusResponse> getTransactionByRequestId(
+        @PathVariable
+        @NotBlank(message = "Request ID is required")
+        @Pattern(
+            regexp = "^[A-Za-z0-9/]+$",
+            message = "Only alphabets, digits and / allowed"
+        )
+        String requestId)
+{
+    ComplainStatusResponse response =
+            complainStatusService.getTransactionByRequestId(requestId);
+
+    return ResponseEntity.ok(response);
+}
+
+
+
 
 
 }

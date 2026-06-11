@@ -56,15 +56,15 @@ public class ComplaintService {
     	                            "Vehicle not found with registration number: "
     	                                    + request.getVehicleRegistrationNo()));
 
-    	} else if (request.getApplicationNumber() != null
-    	        && !request.getApplicationNumber().trim().isEmpty()) {
+    	} else if (request.getApplicationNo() != null
+    	        && !request.getApplicationNo().trim().isEmpty()) {
 
     	    feedbackData = feedbackRepo
-    	            .findByApplicationNumber(request.getApplicationNumber())
+    	            .findByApplicationNumber(request.getApplicationNo())
     	            .orElseThrow(() ->
     	                    new RuntimeException(
     	                            "Application not found: "
-    	                                    + request.getApplicationNumber()));
+    	                                    + request.getApplicationNo()));
 
     	} else {
 
@@ -123,7 +123,7 @@ public class ComplaintService {
 
         		complaint.setVehicleRegistrationNo("");  // <-- HERE
         	    complaint.setApplicationNo(
-        	            request.getApplicationNumber());
+        	            request.getApplicationNo());
         	}
 
         

@@ -10,12 +10,22 @@ public class ComplaintRequest {
 		return chassisNumber;
 	}
 
+	public String getApplicationNo() {
+		return applicationNo;
+	}
+
+	public void setApplicationNo(String applicationNo) {
+		this.applicationNo = applicationNo;
+	}
+
 	public void setChassisNumber(String chassisNumber) {
 		this.chassisNumber = chassisNumber;
 	}
 
 	private String vehicleRegistrationNo;
-    private String applicationNumber;
+	
+	
+	private String applicationNo;
     
     private String chassisNumber; 
     
@@ -51,13 +61,7 @@ public class ComplaintRequest {
         this.vehicleRegistrationNo = vehicleRegistrationNo;
     }
 
-    public String getApplicationNumber() {
-        return applicationNumber;
-    }
-
-    public void setApplicationNumber(String applicationNumber) {
-        this.applicationNumber = applicationNumber;
-    }
+    
 
     
 
