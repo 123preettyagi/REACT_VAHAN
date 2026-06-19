@@ -45,37 +45,52 @@ public class AuthController {
     
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
-
+        // Check if username exists
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body(
-                    new RegisterResponse(
-                            "Username already exists",
-                            null,
-                            null,
-                            null
-                    )
+                new RegisterResponse(
+                    "Username already exists",
+                    null,
+                    null,
+                    null
+                )
             );
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Check if email exists (optional but recommended)
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body(
+                new RegisterResponse(
+                    "Email already exists",
+                    null,
+                    null,
+                    null
+                )
+            );
+        }
 
+        // Encode password
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        
+        // Set default role if none provided
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
             Set<String> roles = new HashSet<>();
             roles.add("USER");
             user.setRoles(roles);
         }
-
+        
         user.setEnabled(true);
-
+        
+        // Save user with roles in ONE operation
         User savedUser = userRepository.save(user);
-
+        
         RegisterResponse response = new RegisterResponse(
-                "User registered successfully",
-                savedUser.getUsername(),
-                savedUser.getEmail(),
-                savedUser.getRoles()
+            "User registered successfully",
+            savedUser.getUsername(),
+            savedUser.getEmail(),
+            savedUser.getRoles()
         );
-
+        
         return ResponseEntity.ok(response);
     }
     

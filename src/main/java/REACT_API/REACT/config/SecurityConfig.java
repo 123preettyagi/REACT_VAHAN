@@ -80,6 +80,11 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers(
+                            "/api/transactions/password/forgot",
+                            "/api/transactions/password/validate-token",
+                            "/api/transactions/password/reset"
+                        ).permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().authenticated()
             )

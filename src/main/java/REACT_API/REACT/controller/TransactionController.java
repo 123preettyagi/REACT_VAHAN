@@ -1,6 +1,8 @@
 package REACT_API.REACT.controller;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import REACT_API.REACT.dto.ApiResponse;
+import REACT_API.REACT.dto.AppointmentRequest;
 import REACT_API.REACT.dto.ComplainStatusResponse;
 import REACT_API.REACT.dto.ComplaintRequest;
 import REACT_API.REACT.dto.FeedbackRequest;
@@ -28,11 +31,15 @@ import REACT_API.REACT.dto.ReceiptRequest;
 import REACT_API.REACT.dto.ReceiptResponse;
 import REACT_API.REACT.dto.TransactionDTO;
 import REACT_API.REACT.dto.TransactionSearchRequest;
+import REACT_API.REACT.entity.Appointment;
 import REACT_API.REACT.entity.FeedbackData;
+import REACT_API.REACT.service.AppointmentService;
 import REACT_API.REACT.service.ComplainStatusService;
 import REACT_API.REACT.service.ComplaintService;
+import REACT_API.REACT.service.EmailService;
 import REACT_API.REACT.service.FeedbackService;
 import REACT_API.REACT.service.OtpService;
+import REACT_API.REACT.service.PasswordResetService;
 import REACT_API.REACT.service.ReceiptService;
 import REACT_API.REACT.service.TransactionService;
 import jakarta.validation.Valid;
@@ -321,6 +328,154 @@ public ResponseEntity<ComplainStatusResponse> getTransactionByRequestId(
 }
 
 
+//=====================================================
+//PASSWORD RESET APIs
+//=====================================================
+@Autowired
+private PasswordResetService passwordResetService;
+
+@Autowired
+private EmailService emailService;
+
+@PostMapping("/password/forgot")
+public ResponseEntity<Map<String, String>> forgotPassword(
+        @RequestBody Map<String, String> request) {
+
+    String email = request.get("email");
+
+    if (email == null || email.isEmpty()) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Email is required");
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    String resetLink =
+            passwordResetService.createPasswordResetToken(email);
+
+    if (resetLink == null) {
+        Map<String, String> response = new HashMap<>();
+        response.put("message",
+                "Email not exists in Master table, a reset link has been sent");
+        return ResponseEntity.ok(response);
+    }
+
+    try {
+
+        emailService.sendPasswordResetEmail(email, resetLink);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message",
+                "Password reset link sent to your email");
+
+        return ResponseEntity.ok(response);
+
+    } catch (Exception e) {
+
+        Map<String, String> response = new HashMap<>();
+        response.put("error",
+                "Failed to send email: " + e.getMessage());
+
+        return ResponseEntity.status(
+                HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
+    }
+}
+
+@PostMapping("/password/validate-token")
+public ResponseEntity<Map<String, Boolean>> validateToken(
+        @RequestBody Map<String, String> request) {
+
+    String token = request.get("token");
+
+    if (token == null || token.isEmpty()) {
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("valid", false);
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    boolean isValid =
+            passwordResetService.validateResetToken(token);
+
+    Map<String, Boolean> response = new HashMap<>();
+    response.put("valid", isValid);
+
+    return ResponseEntity.ok(response);
+}
+
+@PostMapping("/password/reset")
+public ResponseEntity<Map<String, String>> resetPassword(
+        @RequestBody Map<String, String> request) {
+
+    String token = request.get("token");
+    String newPassword = request.get("newPassword");
+
+    if (token == null ||
+        newPassword == null ||
+        newPassword.isEmpty()) {
+
+        Map<String, String> response = new HashMap<>();
+        response.put("error",
+                "Token and new password are required");
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    if (newPassword.length() < 6) {
+
+        Map<String, String> response = new HashMap<>();
+        response.put("error",
+                "Password must be at least 6 characters");
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    boolean success =
+            passwordResetService.resetPassword(
+                    token,
+                    newPassword);
+
+    if (success) {
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message",
+                "Password reset successfully");
+
+        return ResponseEntity.ok(response);
+
+    } else {
+
+        Map<String, String> response = new HashMap<>();
+        response.put("error",
+                "Invalid or expired token");
+
+        return ResponseEntity.badRequest().body(response);
+    }
+}
+
+
+//=====================================================
+//APPOINTMENT APIs
+//=====================================================
+
+//=====================================================
+//APPOINTMENT APIs
+//=====================================================
+
+@Autowired
+private AppointmentService appointmentService;
+
+@PostMapping("/appointments")
+@PreAuthorize("hasAnyRole('USER','ADMIN')")
+public ResponseEntity<Appointment> createAppointment(
+     @Valid @RequestBody AppointmentRequest request) {
+
+ Appointment appointment =
+         appointmentService.createAppointment(request);
+
+ return ResponseEntity.status(HttpStatus.CREATED)
+         .body(appointment);
+}
 
 
 

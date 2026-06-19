@@ -24,10 +24,10 @@ public class User {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
-        name = "user_roles",
+        name = "role",
         joinColumns = @JoinColumn(name = "user_id")
     )
-    @Column(name = "role")
+    @Column(name = "Role")
     private Set<String> roles = new HashSet<>();
 
     private boolean enabled = true;
