@@ -22,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import REACT_API.REACT.dto.ApiResponse;
 import REACT_API.REACT.dto.AppointmentRequest;
+import REACT_API.REACT.dto.AppointmentResponse;
+import REACT_API.REACT.dto.AppointmentSearchRequest;
 import REACT_API.REACT.dto.ComplainStatusResponse;
 import REACT_API.REACT.dto.ComplaintRequest;
 import REACT_API.REACT.dto.FeedbackRequest;
@@ -29,8 +31,11 @@ import REACT_API.REACT.dto.OtpRequest;
 import REACT_API.REACT.dto.OtpVerifyRequest;
 import REACT_API.REACT.dto.ReceiptRequest;
 import REACT_API.REACT.dto.ReceiptResponse;
+import REACT_API.REACT.dto.RegisterComplaintRequest;
+import REACT_API.REACT.dto.RegisterComplaintResponse;
 import REACT_API.REACT.dto.TransactionDTO;
 import REACT_API.REACT.dto.TransactionSearchRequest;
+import REACT_API.REACT.dto.VehicleDTO;
 import REACT_API.REACT.entity.Appointment;
 import REACT_API.REACT.entity.FeedbackData;
 import REACT_API.REACT.service.AppointmentService;
@@ -41,15 +46,21 @@ import REACT_API.REACT.service.FeedbackService;
 import REACT_API.REACT.service.OtpService;
 import REACT_API.REACT.service.PasswordResetService;
 import REACT_API.REACT.service.ReceiptService;
+import REACT_API.REACT.service.RegisterComplaintService;
 import REACT_API.REACT.service.TransactionService;
+import REACT_API.REACT.service.VehicleService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/transactions")
 public class TransactionController
 {
+	private static final Logger log =
+	        LoggerFactory.getLogger(TransactionController.class);
     
 	 // =====================================================
     //                TRANSACTION APIs
@@ -146,6 +157,11 @@ private FeedbackService feedbackService;
 public ResponseEntity<FeedbackData> saveFeedback(
         @Valid @RequestBody FeedbackRequest request) {
 
+    System.out.println(request.getRtoName());
+    System.out.println(request.getState());
+
+
+	
     FeedbackData savedData =
             feedbackService.saveFeedback(request);
 
@@ -458,12 +474,10 @@ public ResponseEntity<Map<String, String>> resetPassword(
 //APPOINTMENT APIs
 //=====================================================
 
-//=====================================================
-//APPOINTMENT APIs
-//=====================================================
 
 @Autowired
 private AppointmentService appointmentService;
+
 
 @PostMapping("/appointments")
 @PreAuthorize("hasAnyRole('USER','ADMIN')")
@@ -475,6 +489,137 @@ public ResponseEntity<Appointment> createAppointment(
 
  return ResponseEntity.status(HttpStatus.CREATED)
          .body(appointment);
+}
+
+
+/**
+ * Get appointments by customer name
+ */
+@GetMapping("/appointments/customer/{customerName}")
+@PreAuthorize("hasAnyRole('USER','ADMIN')")
+public ResponseEntity<?> getAppointmentsByCustomerName(
+        @PathVariable @NotBlank String customerName)
+{
+
+    log.info(
+            "Received request to get appointments for customer: {}",
+            customerName);
+
+    try {
+
+        AppointmentSearchRequest searchRequest =
+                new AppointmentSearchRequest();
+
+        searchRequest.setCustomerName(customerName);
+        searchRequest.setExactMatch(true);
+
+        List<AppointmentResponse> appointments =
+                appointmentService.findAppointments(
+                        searchRequest);
+
+        if (appointments.isEmpty()) {
+
+            Map<String, String> response =
+                    new HashMap<>();
+
+            response.put(
+                    "message",
+                    "No appointments found for customer: "
+                            + customerName);
+
+            response.put(
+                    "customerName",
+                    customerName);
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(response);
+        }
+
+        Map<String, Object> response =
+                new HashMap<>();
+
+        response.put(
+                "customerName",
+                customerName);
+
+        response.put(
+                "totalAppointments",
+                appointments.size());
+
+        response.put(
+                "appointments",
+                appointments);
+
+        return ResponseEntity.ok(response);
+
+    } catch (Exception e) {
+
+        log.error(
+                "Error fetching appointments: {}",
+                e.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error fetching appointments: "
+                        + e.getMessage());
+    }
+}
+
+//=====================================================
+//REGISTER COMPLAINT APIs
+//=====================================================
+
+@Autowired
+private RegisterComplaintService registerComplaintService;
+
+@PostMapping("/register-complaint")
+@PreAuthorize("hasAnyRole('USER','ADMIN')")
+public ResponseEntity<RegisterComplaintResponse> registerComplaint(
+        @Valid @RequestBody RegisterComplaintRequest request) {
+
+    RegisterComplaintResponse response =
+            registerComplaintService.registerComplaint(request);
+
+    if (response.getId() == null) {
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    return ResponseEntity.status(HttpStatus.CREATED)
+            .body(response);
+}
+
+
+@GetMapping("/register-complaint/{vehicleNumber}")
+@PreAuthorize("hasAnyRole('USER','ADMIN')")
+public ResponseEntity<RegisterComplaintResponse> getComplaintByVehicleNumber(
+        @PathVariable String vehicleNumber) {
+
+    RegisterComplaintResponse response =
+            registerComplaintService.getComplaintByVehicleNumber(vehicleNumber);
+
+    if (response.getId() == null) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
+
+    return ResponseEntity.ok(response);
+}
+
+
+
+//=====================================================
+//Vehicle Registration APIs
+//=====================================================
+
+@Autowired
+private VehicleService vehicleService;
+@PostMapping("/VehicleRegister")
+public ResponseEntity<VehicleDTO> registervehicle(@Valid @RequestBody VehicleDTO vehicleDTO)
+{
+	VehicleDTO registeredVehicle=vehicleService.registerVehicle(vehicleDTO);
+	return new ResponseEntity<>(registeredVehicle, HttpStatus.CREATED);
+	
 }
 
 

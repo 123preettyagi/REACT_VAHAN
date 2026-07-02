@@ -84,6 +84,24 @@ public class ComplaintService {
         if (!last5Chars.equalsIgnoreCase(request.getChassisNumber())) {
             throw new RuntimeException("Chassis number validation failed. Last 5 characters do not match.");
         }
+        
+        
+     // =========================
+     // Validate State
+     // =========================
+     if (feedbackData.getState() == null ||
+         !feedbackData.getState().trim().equalsIgnoreCase(request.getState().trim())) {
+         throw new RuntimeException("State does not match the vehicle details.");
+     }
+
+     // =========================
+     // Validate RTO Name
+     // =========================
+     if (feedbackData.getRtoName() == null ||
+         !feedbackData.getRtoName().trim().equalsIgnoreCase(request.getRtoName().trim())) {
+         throw new RuntimeException("RTO Name does not match the vehicle details.");
+     }
+        
 
         // Handle image upload 
         String imagePath = "";

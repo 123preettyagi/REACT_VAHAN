@@ -36,8 +36,33 @@ public class FeedbackRequest {
 	    )
 	    private String vehicleRegistrationNo;
     
+	    
+	    @NotBlank(message = "RTO Name is required")
+	    private String rtoName;
 
-    public String getApplicationNumber() {
+	    @NotBlank(message = "State is required")
+	    private String state;
+
+	    
+
+	    
+    public String getRtoName() {
+			return rtoName;
+		}
+
+		public void setRtoName(String rtoName) {
+			this.rtoName = rtoName;
+		}
+
+		public String getState() {
+			return state;
+		}
+
+		public void setState(String state) {
+			this.state = state;
+		}
+
+	public String getApplicationNumber() {
         return applicationNumber;
     }
 

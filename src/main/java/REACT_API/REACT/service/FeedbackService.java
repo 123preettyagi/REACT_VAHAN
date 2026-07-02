@@ -42,6 +42,8 @@ public class FeedbackService {
         feedback.setChassisNumber(request.getChassisNumber());
         feedback.setEmailId(request.getEmailId());
         feedback.setVehicleRegistrationNo(request.getVehicleRegistrationNo());
+        feedback.setRtoName(request.getRtoName());
+        feedback.setState(request.getState());
 
         return feedbackRepository.save(feedback);
     }

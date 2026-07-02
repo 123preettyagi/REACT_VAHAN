@@ -19,9 +19,13 @@ public class FeedbackData {
     @Column(unique = true)
     private String vehicleRegistrationNo;
 
+    
     private String emailId;
 
-   
+    private String rtoName;
+
+    private String state;
+    
 
     // Default Constructor
     public FeedbackData() {
@@ -29,21 +33,40 @@ public class FeedbackData {
 
     // Parameterized Constructor
     public FeedbackData(Long id, String applicationNumber, String chassisNumber,
-                        String emailId, String vehicleRegistrationNo) {
+                        String emailId, String vehicleRegistrationNo,String rtoName,String state ) {
         this.id = id;
         this.applicationNumber = applicationNumber;
         this.chassisNumber = chassisNumber;
         this.emailId = emailId;
         this.vehicleRegistrationNo = vehicleRegistrationNo;
+        this.rtoName=rtoName;
+        this.state=state;
     }
 
     // Getters and Setters
 
+    
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public String getRtoName() {
+		return rtoName;
+	}
+
+	public void setRtoName(String rtoName) {
+		this.rtoName = rtoName;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+	public void setId(Long id) {
         this.id = id;
     }
 
@@ -87,6 +110,8 @@ public class FeedbackData {
                 ", chassisNumber='" + chassisNumber + '\'' +
                 ", emailId='" + emailId + '\'' +
                 ", vehicleRegistrationNo='" + vehicleRegistrationNo + '\'' +
+                ", state='" + state + '\'' +
+                ", rtoName='" + rtoName + '\'' +
                 '}';
     }
 }
